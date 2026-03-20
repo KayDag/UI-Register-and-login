@@ -8,90 +8,101 @@ import {
   StyleSheet,
 } from "react-native";
 
-export default class Login extends Component {
+export default class Forgot extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       username: "",
-      password: "",
+      email: "",
+      newPw: "",
+      cfpw: "",
     };
   }
+  replacePw = async () => {
+    const { username, email, newPw, cfpw } = this.state;
 
-  login = async () => {
-    const { username, password } = this.state;
+    if (newPw !== cfpw) {
+      alert("Password không khớp");
+      return;
+    }
 
     let data = await AsyncStorage.getItem("users");
     let users = data ? JSON.parse(data) : [];
 
-    const found = users.find(
-      (u) =>
-        (u.username === username || u.email === username) &&
-        u.password === password,
+    const index = users.findIndex(
+      (u) => u.username === username && u.email === email,
     );
 
-    if (found) {
-      this.props.goToProfile(found);
+    if (index !== -1) {
+      users[index].password = newPw;
+
+      await AsyncStorage.setItem("users", JSON.stringify(users));
+      alert("Đổi mật khẩu thành công");
+      this.props.goToLogin();
     } else {
-      alert("Sai tài khoản hoặc mật khẩu");
+      alert("Không tìm thấy tài khoản");
     }
   };
-
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.formContainer}>
-          <Text style={styles.title}>Login</Text>
-
+          <Text style={styles.title}>Forgot Password</Text>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Username or email</Text>
+            <Text style={styles.label}>Username</Text>
             <TextInput
               style={styles.input}
               value={this.state.username}
               onChangeText={(text) => this.setState({ username: text })}
             />
           </View>
-
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={this.state.email}
+              onChangeText={(text) => this.setState({ email: text })}
+            />
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>New Password</Text>
             <TextInput
               style={styles.input}
               secureTextEntry
-              value={this.state.password}
-              onChangeText={(text) => this.setState({ password: text })}
+              value={this.state.newPw}
+              onChangeText={(text) => this.setState({ newPw: text })}
             />
-
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={this.state.cfpw}
+              onChangeText={(text) => this.setState({ cfpw: text })}
+            />
             <TouchableOpacity
               style={styles.forgot}
-              onPress={this.props.goToSetPassword}
+              onPress={this.props.goToLogin}
             >
-              <Text style={styles.linkText}>Forgot Password?</Text>
+              <Text style={styles.linkText}>Sign in</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.signinButton} onPress={this.login}>
-            <Text style={styles.signText}>Sign in</Text>
+          <TouchableOpacity style={styles.button} onPress={this.replacePw}>
+            <Text style={styles.signText}>Set Password</Text>
           </TouchableOpacity>
-
-          <Text style={styles.signup}>
-            Don't have an account?{" "}
-            <Text style={styles.linkText} onPress={this.props.goToRegister}>
-              Sign up
-            </Text>
-          </Text>
         </View>
       </View>
     );
   }
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   formContainer: {
     height: "100%",
     width: "100%",
@@ -100,7 +111,6 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: "center",
   },
-
   title: {
     textAlign: "center",
     fontSize: 24,
@@ -108,17 +118,14 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     marginBottom: 10,
   },
-
   inputGroup: {
     marginTop: 20,
   },
-
   label: {
     color: "#cbd5e1",
     marginBottom: 8,
     fontSize: 16,
   },
-
   input: {
     width: "100%",
     borderRadius: 10,
@@ -129,34 +136,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#1e293b",
     color: "#ffffff",
   },
-
-  forgot: {
-    alignItems: "flex-end",
-    marginTop: 8,
-  },
-
-  linkText: {
-    color: "#cbd5e1",
-  },
-
-  signinButton: {
+  button: {
     marginTop: 30,
     backgroundColor: "#a78bfa",
     paddingVertical: 14,
     borderRadius: 12,
   },
-
   signText: {
     textAlign: "center",
     fontWeight: "600",
     fontSize: 18,
     color: "#0f172a",
   },
-
   signup: {
     marginTop: 25,
     textAlign: "center",
     color: "#cbd5e1",
     fontSize: 14,
+  },
+  linkText: {
+    color: "#cbd5e1",
+  },
+  forgot: {
+    alignItems: "flex-end",
+    marginTop: 8,
   },
 });

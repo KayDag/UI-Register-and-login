@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
+import React, { Component } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -8,75 +8,175 @@ import {
   StyleSheet,
 } from "react-native";
 
-export default function Register() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [pwConfirm, setPwConfirm] = useState("");
-  const [email, setEmail] = useState("");
-  return (
-    <View style={styles.container}>
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Register</Text>
+export default class Register extends Component {
+  constructor(props) {
+    super(props);
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            style={styles.input}
-            value={username}
-            onChangeText={setUsername}
-          ></TextInput>
+    this.state = {
+      username: "",
+      email: "",
+      password: "",
+      pwConfirm: "",
+      phone: "",
+      address: "",
+      birthday: "",
+    };
+  }
+
+  formatBirthday = (text) => {
+    let cleaned = text.replace(/\D/g, "");
+
+    if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
+
+    let formatted = cleaned;
+
+    if (cleaned.length > 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
+    } else if (cleaned.length > 2) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    }
+
+    this.setState({ birthday: formatted });
+  };
+
+  saveUser = async () => {
+    const { username, email, password, pwConfirm, phone, address, birthday } =
+      this.state;
+
+    if (password !== pwConfirm) {
+      alert("Password không khớp");
+      return;
+    }
+    if (users.find((u) => u.username === username)) {
+      alert("Username đã tồn tại");
+      return;
+    }
+    const user = {
+      username,
+      email,
+      password,
+      phone,
+      address,
+      birthday,
+    };
+
+    try {
+      let data = await AsyncStorage.getItem("users");
+
+      let users = data ? JSON.parse(data) : [];
+
+      users.push(user);
+
+      await AsyncStorage.setItem("users", JSON.stringify(users));
+
+      alert("Đăng ký thành công");
+      this.props.goToLogin();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Register</Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Username</Text>
+            <TextInput
+              style={styles.input}
+              value={this.state.username}
+              onChangeText={(text) => this.setState({ username: text })}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={this.state.email}
+              onChangeText={(text) => this.setState({ email: text })}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={this.state.phone}
+              onChangeText={(text) => this.setState({ phone: text })}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Address</Text>
+            <TextInput
+              style={styles.input}
+              value={this.state.address}
+              onChangeText={(text) => this.setState({ address: text })}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Date of Birth</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="dd/mm/yyyy"
+              value={this.state.birthday}
+              onChangeText={this.formatBirthday}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={this.state.password}
+              onChangeText={(text) => this.setState({ password: text })}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={this.state.pwConfirm}
+              onChangeText={(text) => this.setState({ pwConfirm: text })}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={this.saveUser}>
+            <Text style={styles.signButton}>Sign up</Text>
+          </TouchableOpacity>
+
+          <View style={styles.signinContainer}>
+            <Text style={styles.label}>
+              Have an account?{" "}
+              <Text style={styles.linkText} onPress={this.props.goToLogin}>
+                Sign in
+              </Text>
+            </Text>
+          </View>
         </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-          ></TextInput>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          ></TextInput>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Confirm Password</Text>
-          <TextInput
-            style={styles.input}
-            secureTextEntry
-            value={pwConfirm}
-            onChangeText={setPwConfirm}
-          ></TextInput>
-        </View>
-
-        <TouchableOpacity style={styles.signupButton}>
-          <Text style={styles.signText}>Sign up</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.signin}>
-          Have an account? <Text style={styles.linkText}>Sign in</Text>
-        </Text>
       </View>
-    </View>
-  );
+    );
+  }
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#0f172a",
   },
 
   formContainer: {
-    height: "85%",
-    width: "90%",
+    height: "100%",
+    width: "100%",
     backgroundColor: "#0f172a",
     borderRadius: 16,
     padding: 24,
@@ -85,55 +185,53 @@ const styles = StyleSheet.create({
 
   title: {
     textAlign: "center",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "600",
     color: "#ffffff",
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
   inputGroup: {
-    marginTop: 20,
+    marginTop: 5,
   },
 
   label: {
     color: "#cbd5e1",
-    marginBottom: 8,
-    fontSize: 16,
+    marginBottom: 6,
+    fontSize: 14,
   },
 
   input: {
-    width: "100%",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#334155",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     backgroundColor: "#1e293b",
     color: "#ffffff",
   },
 
-  signupButton: {
-    marginTop: 30,
+  button: {
+    marginTop: 20,
     backgroundColor: "#a78bfa",
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
   },
 
-  linkText: {
-    color: "#cbd5e1",
-  },
-
-  signText: {
+  signButton: {
     textAlign: "center",
     fontWeight: "600",
     fontSize: 18,
     color: "#0f172a",
   },
-
-  signin: {
-    marginTop: 25,
+  signinContainer: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  signText: {
     textAlign: "center",
     color: "#cbd5e1",
+    marginBottom: 6,
     fontSize: 14,
   },
 });
